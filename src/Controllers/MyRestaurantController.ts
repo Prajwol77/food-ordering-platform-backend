@@ -6,9 +6,14 @@ import mongoose from "mongoose";
 const getMyRestaurant = async(req:Request, res:Response)=>{
   try{
       const restaurant = await Restaurant.findOne({user: req.userId});
+      console.log(restaurant);
+      
      if(!restaurant){
        return res.status(404).json({message:"Restaurant not found"})
      }
+
+     return res.status(200).json({message:"", data: restaurant})
+
   }catch(error){
     console.log("error",error);
     res.status(500).json({message: "Error fetching restaurant"})
