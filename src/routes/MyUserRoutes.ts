@@ -15,5 +15,9 @@ router.put(
   validateMyUserRequest,
   MyUserController.updateCurrentUser,
 );
+router.get("/getAllUsers",jwtCheck, jwtParse, MyUserController.getAllUser);
+router.delete("/deleteUser",jwtCheck, jwtParse, MyUserController.deleteUser);
+router.put("/makeUserAdmin",jwtCheck, jwtParse, MyUserController.makeUserAdmin);
+
 
 export default router;
