@@ -82,6 +82,21 @@ const updateMyRestaurant = async (req: Request, res: Response) => {
   }
 };
 
+const getAllMyRestaurant = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    const restaurants = await Restaurant.find().sort({ _id: 1 }).skip(skip).limit(limit);
+    const total = await Restaurant.countDocuments();
+    res.status(200).json({ restaurants, total });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({message: "Internal server error"})
+  }
+}
+
+
 const uploadImage = async (file: Express.Multer.File) => {
   const image = file;
   const base64Image = Buffer.from(image.buffer).toString("base64");
@@ -94,4 +109,5 @@ export default {
   getMyRestaurant,
   createMyRestaurant,
   updateMyRestaurant,
+  getAllMyRestaurant
 };
