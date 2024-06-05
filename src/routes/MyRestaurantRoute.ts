@@ -35,6 +35,6 @@ router.put(
   MyRestaurantController.updateMyRestaurant,
 );
 
-router.get("/", jwtCheck, jwtParse, MyRestaurantController.getAllMyRestaurant);
+router.get("/getAllMyRestaurant", jwtCheck, jwtParse, MyRestaurantController.getAllMyRestaurant);
 
 export default router;

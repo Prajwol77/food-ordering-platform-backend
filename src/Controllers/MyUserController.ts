@@ -25,7 +25,6 @@ const createCurrentUser = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({ auth0Id });
 
     if (existingUser) {
-      console.log("🚀 ~ createCurrentUser ~ existingUser:", existingUser)
       return res.status(200).send(existingUser);
     }
     const newUser = new User(req.body);
