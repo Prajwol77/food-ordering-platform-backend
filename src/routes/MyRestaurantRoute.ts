@@ -36,5 +36,9 @@ router.put(
 );
 
 router.get("/getAllMyRestaurant", jwtCheck, jwtParse, MyRestaurantController.getAllMyRestaurant);
+router.get("/getRestaurantById", jwtCheck, jwtParse, MyRestaurantController.getRestaurantById);
+router.delete("/deleteRestaurant", jwtCheck, jwtParse, MyRestaurantController.deleteRestaurant);
+
+
 
 export default router;
