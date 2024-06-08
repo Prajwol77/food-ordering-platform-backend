@@ -129,11 +129,11 @@ const getRestaurantById = async (req: Request, res: Response) => {
         ...restaurant.toObject(),
         owner: restaurantOwner.toObject(),
       };
-    } else{
+    } else {
       restaurantWithOwner = {
         ...restaurant.toObject(),
         owner: {},
-      }
+      };
     }
     res.status(200).send(restaurantWithOwner);
   } catch (error) {
@@ -150,23 +150,39 @@ const deleteRestaurant = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Restaurant ID is required" });
     }
 
-    const restaurants = await Restaurant.findByIdAndDelete(new Types.ObjectId(restaurantId.toString()));
+    const restaurants = await Restaurant.findByIdAndDelete(
+      new Types.ObjectId(restaurantId.toString())
+    );
 
     let isRestaurantDeleted = false;
 
     if (!restaurants) {
       return res.status(404).json({ message: "Restaurant not found" });
-    } else{
+    } else {
       isRestaurantDeleted = true;
     }
 
     const restaurantsWithDeletion = {
-      ...restaurants.toObject(), isRestaurantDeleted
-    }
+      ...restaurants.toObject(),
+      isRestaurantDeleted,
+    };
 
     res.status(200).json(restaurantsWithDeletion);
   } catch (error) {
     console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const allUserAndRestaurant = async (req: Request, res: Response) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalRestaurant = await Restaurant.countDocuments();
+    res
+      .status(200)
+      .json({ totalUsers: totalUsers, totalRestaurant: totalRestaurant });
+  } catch (error) {
+    console.log("error", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -185,5 +201,6 @@ export default {
   updateMyRestaurant,
   getAllMyRestaurant,
   getRestaurantById,
-  deleteRestaurant
+  deleteRestaurant,
+  allUserAndRestaurant
 };
