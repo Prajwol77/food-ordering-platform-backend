@@ -92,9 +92,9 @@ const getAllMyRestaurant = async (req: Request, res: Response) => {
       .sort({ _id: 1 })
       .skip(skip)
       .limit(limit);
-    restaurants.forEach(async (res) => {
-      if (res.user) {
-        const user = await User.findById(new Types.ObjectId(res.user));
+    restaurants.forEach(async (response) => {
+      if (response.user) {
+        return await User.findById(new Types.ObjectId(response.user));
       }
     });
     const total = await Restaurant.countDocuments();
