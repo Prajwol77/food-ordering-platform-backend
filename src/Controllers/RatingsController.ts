@@ -7,10 +7,6 @@ import { Types } from "mongoose";
 const updateReview = async (req: Request, res: Response) => {
   try {
     const { reviewStars, restaurantID, userId, comment } = req.body;
-    console.log("🚀 ~ updateReview ~ comment:", comment);
-    console.log("🚀 ~ updateReview ~ userId:", userId);
-    console.log("🚀 ~ updateReview ~ restaurantID:", restaurantID);
-    console.log("🚀 ~ updateReview ~ reviewStars:", reviewStars);
 
     if (!restaurantID) {
       return res.status(400).json({ message: "Restaurant ID is required" });
@@ -20,10 +16,12 @@ const updateReview = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    if (typeof reviewStars !== "number" || reviewStars < 1 || reviewStars > 5) {
-      return res
-        .status(400)
-        .json({ message: "Review stars must be a number between 1 and 5" });
+    if (typeof reviewStars === "number") {
+      if (reviewStars < 1 || reviewStars > 5) {
+        return res
+          .status(400)
+          .json({ message: "Review stars must be a number between 1 and 5" });
+      }
     }
 
     const restaurant = await Restaurant.findById(
@@ -81,4 +79,39 @@ const updateReview = async (req: Request, res: Response) => {
   }
 };
 
-export { updateReview };
+const getCommentForRestaurant = async (req: Request, res: Response) => {
+  try {
+    const { restaurantID } = req.query;
+
+    if (!restaurantID) {
+      return res.status(400).json({ message: "Restaurant ID is required" });
+    }
+
+    const restaurant = await Restaurant.findById(
+      new Types.ObjectId(restaurantID.toString())
+    );
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const allComments = await Ratings.find({ restaurantID: restaurantID })
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("userId", "name");
+
+    const allCommentCount = await Ratings.countDocuments();
+
+    res.status(200).json({data: allComments, count: allCommentCount});
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { updateReview, getCommentForRestaurant };

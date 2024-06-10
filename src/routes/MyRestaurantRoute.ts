@@ -3,7 +3,7 @@ import multer from "multer";
 import MyRestaurantController from "../Controllers/MyRestaurantController";
 import { jwtCheck, jwtParse } from "../middleware/auth";
 import { validateMyRestaurantRequest } from "../middleware/validation";
-import { updateReview } from "../Controllers/RatingsController";
+import { getCommentForRestaurant, updateReview } from "../Controllers/RatingsController";
 
 const router = express.Router();
 
@@ -43,6 +43,9 @@ router.delete("/deleteRestaurant", jwtCheck, jwtParse, MyRestaurantController.de
 router.get("/allUserAndRestaurant", jwtCheck, jwtParse, MyRestaurantController.allUserAndRestaurant);
 
 router.put("/rating", jwtCheck, jwtParse, updateReview);
+
+router.get("/getCommentForRestaurant", jwtCheck, jwtParse, getCommentForRestaurant);
+
 
 
 export default router;
