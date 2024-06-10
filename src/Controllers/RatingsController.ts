@@ -7,6 +7,10 @@ import { Types } from "mongoose";
 const updateReview = async (req: Request, res: Response) => {
   try {
     const { reviewStars, restaurantID, userId, comment } = req.body;
+    console.log("🚀 ~ updateReview ~ comment:", comment);
+    console.log("🚀 ~ updateReview ~ userId:", userId);
+    console.log("🚀 ~ updateReview ~ restaurantID:", restaurantID);
+    console.log("🚀 ~ updateReview ~ reviewStars:", reviewStars);
 
     if (!restaurantID) {
       return res.status(400).json({ message: "Restaurant ID is required" });
@@ -39,8 +43,12 @@ const updateReview = async (req: Request, res: Response) => {
     let rating = await Ratings.findOne({ userId, restaurantID });
 
     if (rating) {
-      rating.ratingValue = reviewStars;
-      rating.comment = comment;
+      if (reviewStars) {
+        rating.ratingValue = reviewStars;
+      }
+      if (comment) {
+        rating.comment = comment;
+      }
       await rating.save();
     } else {
       rating = new Ratings({
@@ -64,7 +72,9 @@ const updateReview = async (req: Request, res: Response) => {
     restaurant.numberOfRatings = totalRatings;
     await restaurant.save();
 
-    res.status(200).json({ message: "Rating updated successfully", rating });
+    res
+      .status(200)
+      .json({ message: "Rating updated successfully", rating, averageRating });
   } catch (error) {
     console.log("error", error);
     res.status(500).json({ message: "Internal server error" });
