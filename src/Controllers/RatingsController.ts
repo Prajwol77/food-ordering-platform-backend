@@ -7,7 +7,6 @@ import { Types } from "mongoose";
 const updateReview = async (req: Request, res: Response) => {
   try {
     const { reviewStars, restaurantID, userId, comment } = req.body;
-    console.log("🚀 ~ updateReview ~ userId:", userId)
 
     if (!restaurantID) {
       return res.status(400).json({ message: "Restaurant ID is required" });
@@ -40,10 +39,13 @@ const updateReview = async (req: Request, res: Response) => {
     }
 
     let rating = await Ratings.findOne({ userId, restaurantID });
+    console.log("🚀 ~ updateReview ~ rating:", rating)
 
     if (rating) {
       if (reviewStars) {
         rating.ratingValue = reviewStars;
+      } else{
+        rating.ratingValue = 0;
       }
       if (comment) {
         rating.comment = comment;
