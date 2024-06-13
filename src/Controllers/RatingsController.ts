@@ -7,6 +7,7 @@ import { Types } from "mongoose";
 const updateReview = async (req: Request, res: Response) => {
   try {
     const { reviewStars, restaurantID, userId, comment } = req.body;
+    console.log("🚀 ~ updateReview ~ userId:", userId)
 
     if (!restaurantID) {
       return res.status(400).json({ message: "Restaurant ID is required" });
@@ -103,7 +104,7 @@ const getCommentForRestaurant = async (req: Request, res: Response) => {
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("userId", "name");
+      .populate("userId", "name email");
 
     const allCommentCount = await Ratings.countDocuments();
 
