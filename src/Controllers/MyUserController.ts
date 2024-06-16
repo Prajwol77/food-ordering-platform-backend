@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/user";
+import { LoginUserType, RegisterUserType } from "../types/UserType";
+import bcrypt from 'bcrypt'
 
 const getCurrentUser = async (req: Request, res: Response) => {
   try {
@@ -127,3 +129,4 @@ export default {
   deleteUser,
   makeUserAdmin
 };
+
