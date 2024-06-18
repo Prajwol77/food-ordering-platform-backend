@@ -3,9 +3,17 @@ import Ratings from "../models/ratings";
 import Restaurant from "../models/restaurant";
 import User from "../models/user";
 import { Types } from "mongoose";
+import parseToken from "../utils/parse_token";
 
 const updateReview = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const { reviewStars, restaurantID, userId, comment } = req.body;
 
     if (!restaurantID) {
@@ -84,6 +92,13 @@ const updateReview = async (req: Request, res: Response) => {
 
 const getCommentForRestaurant = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const { restaurantID } = req.query;
 
     if (!restaurantID) {

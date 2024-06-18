@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { LoginUserType, RegisterUserType } from "../types/UserType";
 import User from "../models/user";
 import bcrypt from "bcrypt";
+import parseToken from "../utils/parse_token";
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -80,4 +81,29 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
-export { register, login };
+const getLoginUser = async (req: Request, res: Response) => {
+  try {
+    const { authorization } = req.headers;
+
+    if(!authorization){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const tokenVar = await parseToken(authorization.toString());
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(tokenVar.userId)
+
+    res.status(201).json({
+      isSuccess: true,
+      user
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { register, login, getLoginUser };

@@ -3,11 +3,19 @@ import Restaurant from "../models/restaurant";
 import cloudinary from "cloudinary";
 import mongoose, { Types } from "mongoose";
 import User from "../models/user";
+import parseToken from "../utils/parse_token";
 
 const getMyRestaurant = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const restaurant = await Restaurant.findOne({ user: req.userId });
-    console.log(restaurant);
 
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
@@ -22,9 +30,20 @@ const getMyRestaurant = async (req: Request, res: Response) => {
 
 const createMyRestaurant = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    };
+
     const existingRestaurant = await Restaurant.findOne({
-      user: req.userId,
+      user: tokenVar.userId,
     });
+
+    console.log(existingRestaurant);
+
     if (existingRestaurant) {
       return res
         .status(409)
@@ -54,6 +73,13 @@ const createMyRestaurant = async (req: Request, res: Response) => {
 
 const updateMyRestaurant = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const restaurant = await Restaurant.findOne({
       user: req.userId,
     });
@@ -85,6 +111,13 @@ const updateMyRestaurant = async (req: Request, res: Response) => {
 
 const getAllMyRestaurant = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
@@ -107,6 +140,13 @@ const getAllMyRestaurant = async (req: Request, res: Response) => {
 
 const getRestaurantById = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const { restaurantID } = req.query;
     if (!restaurantID) {
       return res.status(404).json({ message: "RestaurantID not provided" });
@@ -144,6 +184,13 @@ const getRestaurantById = async (req: Request, res: Response) => {
 
 const deleteRestaurant = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const { restaurantId } = req.query;
 
     if (!restaurantId) {
@@ -176,6 +223,13 @@ const deleteRestaurant = async (req: Request, res: Response) => {
 
 const allUserAndRestaurant = async (req: Request, res: Response) => {
   try {
+    const { authorization } = req.headers;
+
+    const tokenVar = await parseToken(authorization);
+
+    if(!tokenVar){
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const totalUsers = await User.countDocuments();
     const totalRestaurant = await Restaurant.countDocuments();
     res
@@ -195,7 +249,8 @@ const uploadImage = async (file: Express.Multer.File) => {
   const uploadResponse = await cloudinary.v2.uploader.upload(dataURI);
   return uploadResponse.url;
 };
-export default {
+
+export {
   getMyRestaurant,
   createMyRestaurant,
   updateMyRestaurant,

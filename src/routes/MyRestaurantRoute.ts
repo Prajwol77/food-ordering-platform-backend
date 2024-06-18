@@ -1,9 +1,20 @@
 import express from "express";
 import multer from "multer";
-import MyRestaurantController from "../Controllers/MyRestaurantController";
+import {
+  allUserAndRestaurant,
+  deleteRestaurant,
+  getAllMyRestaurant,
+  getRestaurantById,
+  getMyRestaurant,
+  updateMyRestaurant,
+  createMyRestaurant,
+} from "../Controllers/MyRestaurantController";
 import { jwtCheck, jwtParse } from "../middleware/auth";
 import { validateMyRestaurantRequest } from "../middleware/validation";
-import { getCommentForRestaurant, updateReview } from "../Controllers/RatingsController";
+import {
+  getCommentForRestaurant,
+  updateReview,
+} from "../Controllers/RatingsController";
 
 const router = express.Router();
 
@@ -15,37 +26,31 @@ const upload = multer({
   },
 });
 
-router.get("/", jwtCheck, jwtParse, MyRestaurantController.getMyRestaurant);
-// /api/my/restaurant
+//? /api/my/restaurant
+
+router.get("/", getMyRestaurant);
 router.post(
   "/",
   upload.single("imageFile"),
   validateMyRestaurantRequest,
-  jwtCheck,
-  jwtParse,
-
-  MyRestaurantController.createMyRestaurant,
+  createMyRestaurant
 );
 
 router.put(
   "/",
   upload.single("imageFile"),
   validateMyRestaurantRequest,
-  jwtCheck,
-  jwtParse,
-  MyRestaurantController.updateMyRestaurant,
+  updateMyRestaurant
 );
 
-router.get("/getAllMyRestaurant", jwtCheck, jwtParse, MyRestaurantController.getAllMyRestaurant);
-router.get("/getRestaurantById", jwtCheck, jwtParse, MyRestaurantController.getRestaurantById);
-router.delete("/deleteRestaurant", jwtCheck, jwtParse, MyRestaurantController.deleteRestaurant);
+router.get("/getAllMyRestaurant", getAllMyRestaurant);
+router.get("/getRestaurantById", getRestaurantById);
+router.delete("/deleteRestaurant", deleteRestaurant);
 
-router.get("/allUserAndRestaurant", jwtCheck, jwtParse, MyRestaurantController.allUserAndRestaurant);
+router.get("/allUserAndRestaurant", allUserAndRestaurant);
 
-router.put("/rating", jwtCheck, jwtParse, updateReview);
+router.put("/rating", updateReview);
 
-router.get("/getCommentForRestaurant", jwtCheck, jwtParse, getCommentForRestaurant);
-
-
+router.get("/getCommentForRestaurant", getCommentForRestaurant);
 
 export default router;
