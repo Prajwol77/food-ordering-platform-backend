@@ -92,13 +92,6 @@ const updateReview = async (req: Request, res: Response) => {
 
 const getCommentForRestaurant = async (req: Request, res: Response) => {
   try {
-    const { authorization } = req.headers;
-
-    const tokenVar = await parseToken(authorization);
-
-    if(!tokenVar){
-      return res.status(401).json({ message: "Unauthorized" });
-    }
     const { restaurantID } = req.query;
 
     if (!restaurantID) {
