@@ -2,12 +2,14 @@ import Stripe from "stripe";
 import { Request, Response } from "express";
 import Restaurant, { MenuItemType } from "../models/restaurant";
 
-const STRIPE = new Stripe(process.env.STRIPE_API_KEY as string);
+const stripeKey = process.env.STRIPE_API_KEY || "";
+
+const STRIPE = new Stripe(stripeKey);
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
 
 type CheckoutSessionRequest = {
   cartItems: {
-    menuItemId: string;
+    id: string;
     name: string;
     quantity: string;
   }[];
@@ -29,9 +31,9 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     );
 
     if (!restaurant) {
-      throw new Error("Restaurant not found");
+      return res.status(404).json("Restaurant not found");
     }
-
+    
     const lineItems = createLineItems(
       checkoutSessionRequest,
       restaurant.menuItems
@@ -66,15 +68,16 @@ const createLineItems = (
 
   const lineItems = checkoutSessionRequest.cartItems.map((cartItem) => {
     const menuItem = menuItems.find((item) => {
-      item._id.toString() === cartItem.menuItemId.toString();
+      const isMatch = item._id.toString() == cartItem.id.toString();
+      return isMatch;
     });
     if (!menuItem) {
-      throw new Error(`Menu item not found:${cartItem.menuItemId}`);
+      throw new Error(`Menu item not found: ${cartItem.id}`);
     }
 
     const line_item: Stripe.Checkout.SessionCreateParams.LineItem = {
       price_data: {
-        currency: "nrs",
+        currency: "npr",
         unit_amount: menuItem.price,
         product_data: {
           name: menuItem.name,
@@ -104,7 +107,7 @@ const createSession = async (
           type: "fixed_amount",
           fixed_amount: {
             amount: deliveryPrice,
-            currency: "nrs",
+            currency: "npr",
           },
         },
       },
@@ -120,6 +123,4 @@ const createSession = async (
 
   return sessionData;
 };
-export default {
-  createCheckoutSession,
-};
+export { createCheckoutSession };
