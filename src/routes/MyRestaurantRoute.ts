@@ -9,7 +9,6 @@ import {
   updateMyRestaurant,
   createMyRestaurant,
 } from "../Controllers/MyRestaurantController";
-import { jwtCheck, jwtParse } from "../middleware/auth";
 import { validateMyRestaurantRequest } from "../middleware/validation";
 import {
   getCommentForRestaurant,

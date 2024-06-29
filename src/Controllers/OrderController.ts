@@ -25,7 +25,7 @@ type CheckoutSessionRequest = {
 const createCheckoutSession = async (req: Request, res: Response) => {
   try {
     const checkoutSessionRequest: CheckoutSessionRequest = req.body;
-
+    
     const restaurant = await Restaurant.findById(
       checkoutSessionRequest.restaurantId
     );
@@ -33,6 +33,11 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     if (!restaurant) {
       return res.status(404).json("Restaurant not found");
     }
+
+    // const responseFromLatAndLong = await getDistance(checkoutSessionRequest.deliveryDetails.address, restaurant.city);
+    // if(!responseFromLatAndLong.isSuccess){
+    //   return res.status(500).json({ message: "Error creating stripe session" });
+    // }
     
     const lineItems = createLineItems(
       checkoutSessionRequest,
@@ -43,7 +48,8 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       lineItems,
       "TEST_ORDER_ID",
       restaurant.deliveryPrice,
-      restaurant._id.toString()
+      restaurant._id.toString(),
+      req.userId
     );
 
     if (!session.url) {
@@ -96,7 +102,8 @@ const createSession = async (
   lineItems: Stripe.Checkout.SessionCreateParams.LineItem[],
   orderId: string,
   deliveryPrice: number,
-  restaurantId: string
+  restaurantId: string,
+  userId: string
 ) => {
   const sessionData = await STRIPE.checkout.sessions.create({
     line_items: lineItems,
@@ -116,11 +123,12 @@ const createSession = async (
     metadata: {
       orderId,
       restaurantId,
+      userId
     },
     success_url: `${FRONTEND_URL}/order-status?success=true`,
-    cancel_url: `${FRONTEND_URL}/detail/${restaurantId}?cancelled=true`,
+    cancel_url: `${FRONTEND_URL}/detail/restaurant/${restaurantId}?cancelled=true`,
   });
-
+  
   return sessionData;
 };
 export { createCheckoutSession };
