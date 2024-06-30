@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { Request, Response } from "express";
 import Restaurant, { MenuItemType } from "../models/restaurant";
+import Order from "../models/order";
 
 const stripeKey = process.env.STRIPE_API_KEY || "";
 
@@ -11,7 +12,7 @@ type CheckoutSessionRequest = {
   cartItems: {
     id: string;
     name: string;
-    quantity: string;
+    quantity: number;
   }[];
   deliveryDetails: {
     email: string;
@@ -33,7 +34,17 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     if (!restaurant) {
       return res.status(404).json("Restaurant not found");
     }
-    
+
+    const newOrder = new Order({
+      restaurant: restaurant,
+      user: req.userId,
+      status: "placed",
+      deliveryDetails: checkoutSessionRequest.deliveryDetails,
+      cartItems: checkoutSessionRequest.cartItems,
+
+      createdAt: new Date(),
+    });
+
     const lineItems = createLineItems(
       checkoutSessionRequest,
       restaurant.menuItems
@@ -41,7 +52,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
 
     const session = await createSession(
       lineItems,
-      "TEST_ORDER_ID",
+      newOrder._id.toString(),
       restaurant.deliveryPrice,
       restaurant._id.toString()
     );
@@ -49,7 +60,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     if (!session.url) {
       return res.status(500).json({ message: "Error creating stripe session" });
     }
-
+    await newOrder.save();
     res.json({ url: session.url });
   } catch (error: any) {
     console.log(error);
@@ -83,7 +94,7 @@ const createLineItems = (
           name: menuItem.name,
         },
       },
-      quantity: parseInt(cartItem.quantity),
+      quantity: cartItem.quantity,
     };
 
     return line_item;
