@@ -11,9 +11,12 @@ import {
 } from "../Controllers/MyRestaurantController";
 import { validateMyRestaurantRequest } from "../middleware/validation";
 import {
+  deleteRating,
   getCommentForRestaurant,
+  updateRatingById,
   updateReview,
 } from "../Controllers/RatingsController";
+import { jwtParse } from "../middleware/auth";
 
 const router = express.Router();
 
@@ -51,5 +54,10 @@ router.get("/allUserAndRestaurant", allUserAndRestaurant);
 router.put("/rating", updateReview);
 
 router.get("/getCommentForRestaurant", getCommentForRestaurant);
+
+router.put("/updateRatingById", jwtParse, updateRatingById);
+
+router.delete("/deleteRating", jwtParse, deleteRating);
+
 
 export default router;
