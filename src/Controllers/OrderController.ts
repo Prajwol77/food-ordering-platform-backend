@@ -4,7 +4,7 @@ import Restaurant, { MenuItemType } from "../models/restaurant";
 import Order from "../models/order";
 
 const stripeKey = process.env.STRIPE_API_KEY || "";
-
+console.log(stripeKey);
 const STRIPE = new Stripe(stripeKey);
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
 

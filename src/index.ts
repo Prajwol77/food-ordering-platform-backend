@@ -9,7 +9,6 @@ import restaurantRoute from "./routes/RestaurantRoute";
 import authRoute from "./routes/AuthRoute";
 import orderRoute from "./routes/OrderRoutes";
 
-
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING as string)
   .then(() => console.log("Connected to Database"));
@@ -33,7 +32,6 @@ app.use("/api/my/restaurant", myRestaurantRoute);
 app.use("/api/restaurant", restaurantRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/order/checkout", orderRoute);
-
 
 app.listen(7000, () => {
   console.log("Server running on localhost 7000 ");
