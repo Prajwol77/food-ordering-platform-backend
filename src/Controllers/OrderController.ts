@@ -8,6 +8,18 @@ console.log(stripeKey);
 const STRIPE = new Stripe(stripeKey);
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
 
+const getMyOrders = async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.find({ user: req.userId })
+      .populate("restaurant")
+      .populate("user");
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 type CheckoutSessionRequest = {
   cartItems: {
     id: string;
@@ -142,4 +154,4 @@ const createSession = async (
 
   return sessionData;
 };
-export { createCheckoutSession };
+export default { getMyOrders, createCheckoutSession };
