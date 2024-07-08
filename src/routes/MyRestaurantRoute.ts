@@ -8,6 +8,8 @@ import {
   getMyRestaurant,
   updateMyRestaurant,
   createMyRestaurant,
+  getMyRestaurantOrders,
+  updateOrderStatus,
 } from "../Controllers/MyRestaurantController";
 import { validateMyRestaurantRequest } from "../middleware/validation";
 import {
@@ -28,6 +30,8 @@ const upload = multer({
   },
 });
 
+router.get("/order", jwtParse, getMyRestaurantOrders);
+
 //? /api/my/restaurant
 
 router.get("/", getMyRestaurant);
@@ -37,6 +41,8 @@ router.post(
   validateMyRestaurantRequest,
   createMyRestaurant
 );
+
+router.patch("/order/:orderId/status", jwtParse, updateOrderStatus);
 
 router.put(
   "/",
@@ -58,6 +64,5 @@ router.get("/getCommentForRestaurant", getCommentForRestaurant);
 router.put("/updateRatingById", jwtParse, updateRatingById);
 
 router.delete("/deleteRating", jwtParse, deleteRating);
-
 
 export default router;

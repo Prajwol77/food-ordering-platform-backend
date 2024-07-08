@@ -13,8 +13,23 @@ const getMyOrders = async (req: Request, res: Response) => {
     const orders = await Order.find({ user: req.userId })
       .populate("restaurant")
       .populate("user");
+    console.log(orders);
 
-    res.json(orders);
+    let newOrder;
+    const totalOrder = orders.forEach((order) => {
+      order.cartItems.forEach(async (o) => {
+        const restaurant = await Restaurant.findById(order.restaurant);
+        restaurant?.menuItems.forEach((m) => {
+          if (o._id == m._id) {
+            const totalAmount = m.price * o.quantity;
+            newOrder = [...orders, totalAmount];
+          }
+        });
+      });
+    });
+    console.log(newOrder);
+
+    res.json(newOrder);
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
   }
