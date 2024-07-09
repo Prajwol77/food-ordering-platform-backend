@@ -8,6 +8,7 @@ import myRestaurantRoute from "./routes/MyRestaurantRoute";
 import restaurantRoute from "./routes/RestaurantRoute";
 import authRoute from "./routes/AuthRoute";
 import orderRoute from "./routes/OrderRoutes";
+import { submitComment } from "./CommentFilter";
 
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING as string)
@@ -25,6 +26,15 @@ app.use(cors());
 
 app.get("/health", async (req: Request, res: Response) => {
   res.send({ message: "Health OK!" });
+});
+app.post("/api/submit-comment", async (req, res) => {
+  try {
+    const { userId, restaurantId, comment } = req.body;
+    const result = await submitComment(userId, restaurantId, comment);
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
 });
 
 app.use("/api/my/user", myUserRoute);
