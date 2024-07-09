@@ -33,7 +33,7 @@ app.post("/api/submit-comment", async (req, res) => {
     const result = await submitComment(userId, restaurantId, comment);
     res.status(200).send(result);
   } catch (error) {
-    res.status(400).send({ message: error.message });
+    res.status(400).send({ message: error });
   }
 });
 

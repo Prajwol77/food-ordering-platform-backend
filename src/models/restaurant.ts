@@ -62,6 +62,7 @@ const restaurantSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const Restaurant = mongoose.model("Restaurant", restaurantSchema);

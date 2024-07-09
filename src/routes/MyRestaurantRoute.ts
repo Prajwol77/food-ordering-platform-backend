@@ -11,6 +11,7 @@ import {
   getMyRestaurantOrders,
   updateOrderStatus,
   getRestaurantWithoutLogin,
+  getOrderHistory,
 } from "../Controllers/MyRestaurantController";
 import { validateMyRestaurantRequest } from "../middleware/validation";
 import {
@@ -69,5 +70,8 @@ router.put("/updateRatingById", jwtParse, updateRatingById);
 router.delete("/deleteRating", jwtParse, deleteRating);
 
 router.get("/getRestaurant", getRestaurantWithoutLogin);
+
+router.get("/getOrderHistory", getOrderHistory);
+
 
 export default router;

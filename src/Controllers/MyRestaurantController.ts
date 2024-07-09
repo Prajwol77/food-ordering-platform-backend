@@ -270,7 +270,9 @@ const allUserAndRestaurant = async (req: Request, res: Response) => {
 
 const getMyRestaurantOrders = async (req: Request, res: Response) => {
   try {
-    const restaurant = await Restaurant.findOne({ user: new Types.ObjectId(req.userId) });
+    const restaurant = await Restaurant.findOne({
+      user: new Types.ObjectId(req.userId),
+    });
     if (!restaurant) {
       return res.status(404).json({ message: "restaurant not found" });
     }
@@ -301,12 +303,37 @@ const getRestaurantWithoutLogin = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 15;
     const skip = (page - 1) * limit;
     const restaurants = await Restaurant.find()
-      .sort({ averageRating: -1 })
+      .sort({ averageRating: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
     const allRestaurant = await Restaurant.countDocuments();
     res.status(200).json({ data: restaurants, count: allRestaurant });
+  } catch (error) {
+    console.log("getRestaurantWithoutLogin", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const getOrderHistory = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 15;
+    const skip = (page - 1) * limit;
+    const userId = req.query.userId;
+console.log("userId", userId);
+
+    const orders = await Order.find({
+      user: userId,
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const orderCount = await Order.find({
+      user: userId,
+    }).countDocuments();
+    res.status(200).json({ data: orders, count: orderCount });
   } catch (error) {
     console.log("getRestaurantWithoutLogin", error);
     return res.status(500).json({ message: "Something went wrong" });
@@ -323,5 +350,6 @@ export {
   deleteRestaurant,
   allUserAndRestaurant,
   updateOrderStatus,
-  getRestaurantWithoutLogin
+  getRestaurantWithoutLogin,
+  getOrderHistory,
 };

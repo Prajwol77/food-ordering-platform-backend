@@ -14,14 +14,16 @@ const getMyOrders = async (req: Request, res: Response) => {
       .populate("restaurant")
       .populate("user");
 
-    console.log(orders);
-
     await Promise.all(
       orders.map(async (order) => {
         let totalAmount = 0;
         const restaurant = await Restaurant.findById(order.restaurant).populate(
           "menuItems"
         );
+
+        if(!restaurant){
+          return 0;
+        }
 
         order.cartItems.forEach((cartItem) => {
           const menuItem = restaurant?.menuItems.find((m) =>

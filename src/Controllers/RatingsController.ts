@@ -4,6 +4,9 @@ import Restaurant from "../models/restaurant";
 import User from "../models/user";
 import { Types } from "mongoose";
 import parseToken from "../utils/parse_token";
+import Filter from "bad-words";
+
+const filter = new Filter();
 
 const updateReview = async (req: Request, res: Response) => {
   try {
@@ -15,6 +18,10 @@ const updateReview = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
     const { reviewStars, restaurantID, userId, comment } = req.body;
+
+    if (filter.isProfane(comment)) {
+      return res.status(404).json({ message: "Offensive comment detected" });
+    }
 
     if (!restaurantID) {
       return res.status(400).json({ message: "Restaurant ID is required" });
