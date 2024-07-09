@@ -10,26 +10,34 @@ const FRONTEND_URL = process.env.FRONTEND_URL as string;
 
 const getMyOrders = async (req: Request, res: Response) => {
   try {
-    const orders = await Order.find({ user: req.userId })
+    let orders = await Order.find({ user: req.userId })
       .populate("restaurant")
       .populate("user");
+
     console.log(orders);
 
-    let newOrder;
-    const totalOrder = orders.forEach((order) => {
-      order.cartItems.forEach(async (o) => {
-        const restaurant = await Restaurant.findById(order.restaurant);
-        restaurant?.menuItems.forEach((m) => {
-          if (o._id == m._id) {
-            const totalAmount = m.price * o.quantity;
-            newOrder = [...orders, totalAmount];
+    await Promise.all(
+      orders.map(async (order) => {
+        let totalAmount = 0;
+        const restaurant = await Restaurant.findById(order.restaurant).populate(
+          "menuItems"
+        );
+
+        order.cartItems.forEach((cartItem) => {
+          const menuItem = restaurant?.menuItems.find((m) =>
+            m._id.equals(cartItem.id)
+          );
+          if (menuItem) {
+            totalAmount += menuItem.price * cartItem.quantity;
           }
         });
-      });
-    });
-    console.log(newOrder);
 
-    res.json(newOrder);
+        order.totalAmount = totalAmount;
+        await order.save();
+      })
+    );
+
+    res.json(orders);
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
   }
@@ -48,6 +56,8 @@ type CheckoutSessionRequest = {
     city: string;
   };
   restaurantId: string;
+  deliveryPrice: string;
+  estimatedDeliveryTime: string;
 };
 
 const createCheckoutSession = async (req: Request, res: Response) => {
@@ -68,24 +78,22 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       status: "placed",
       deliveryDetails: checkoutSessionRequest.deliveryDetails,
       cartItems: checkoutSessionRequest.cartItems,
-
+      estimatedDeliveryTime: checkoutSessionRequest.estimatedDeliveryTime,
+      deliveryPrice: checkoutSessionRequest.deliveryPrice,
       createdAt: new Date(),
     });
-
-    // const responseFromLatAndLong = await getDistance(checkoutSessionRequest.deliveryDetails.address, restaurant.city);
-    // if(!responseFromLatAndLong.isSuccess){
-    //   return res.status(500).json({ message: "Error creating stripe session" });
-    // }
 
     const lineItems = createLineItems(
       checkoutSessionRequest,
       restaurant.menuItems
     );
 
+    console.log("checkoutSessionRequest.deliveryPrice", newOrder.deliveryPrice);
+
     const session = await createSession(
       lineItems,
       newOrder._id.toString(),
-      restaurant.deliveryPrice,
+      newOrder.deliveryPrice,
       restaurant._id.toString(),
       req.userId
     );
@@ -166,7 +174,6 @@ const createSession = async (
     success_url: `${FRONTEND_URL}/order-status?success=true`,
     cancel_url: `${FRONTEND_URL}/detail/restaurant/${restaurantId}?cancelled=true`,
   });
-
   return sessionData;
 };
-export default { getMyOrders, createCheckoutSession };
+export { getMyOrders, createCheckoutSession };

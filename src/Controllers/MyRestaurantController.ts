@@ -270,7 +270,7 @@ const allUserAndRestaurant = async (req: Request, res: Response) => {
 
 const getMyRestaurantOrders = async (req: Request, res: Response) => {
   try {
-    const restaurant = await Restaurant.findOne({ user: req.userId });
+    const restaurant = await Restaurant.findOne({ user: new Types.ObjectId(req.userId) });
     if (!restaurant) {
       return res.status(404).json({ message: "restaurant not found" });
     }
@@ -278,6 +278,8 @@ const getMyRestaurantOrders = async (req: Request, res: Response) => {
     const orders = await Order.find({ restaurant: restaurant._id })
       .populate("restaurant")
       .populate("user");
+
+    return res.json(orders);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
@@ -293,6 +295,24 @@ const uploadImage = async (file: Express.Multer.File) => {
   return uploadResponse.url;
 };
 
+const getRestaurantWithoutLogin = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 15;
+    const skip = (page - 1) * limit;
+    const restaurants = await Restaurant.find()
+      .sort({ averageRating: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const allRestaurant = await Restaurant.countDocuments();
+    res.status(200).json({ data: restaurants, count: allRestaurant });
+  } catch (error) {
+    console.log("getRestaurantWithoutLogin", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 export {
   getMyRestaurantOrders,
   getMyRestaurant,
@@ -303,4 +323,5 @@ export {
   deleteRestaurant,
   allUserAndRestaurant,
   updateOrderStatus,
+  getRestaurantWithoutLogin
 };

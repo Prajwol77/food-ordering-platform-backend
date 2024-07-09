@@ -10,6 +10,7 @@ import {
   createMyRestaurant,
   getMyRestaurantOrders,
   updateOrderStatus,
+  getRestaurantWithoutLogin,
 } from "../Controllers/MyRestaurantController";
 import { validateMyRestaurantRequest } from "../middleware/validation";
 import {
@@ -34,9 +35,10 @@ router.get("/order", jwtParse, getMyRestaurantOrders);
 
 //? /api/my/restaurant
 
-router.get("/", getMyRestaurant);
+router.get("/", jwtParse, getMyRestaurant);
 router.post(
   "/",
+  jwtParse,
   upload.single("imageFile"),
   validateMyRestaurantRequest,
   createMyRestaurant
@@ -46,6 +48,7 @@ router.patch("/order/:orderId/status", jwtParse, updateOrderStatus);
 
 router.put(
   "/",
+  jwtParse,
   upload.single("imageFile"),
   validateMyRestaurantRequest,
   updateMyRestaurant
@@ -53,16 +56,18 @@ router.put(
 
 router.get("/getAllMyRestaurant", getAllMyRestaurant);
 router.get("/getRestaurantById", getRestaurantById);
-router.delete("/deleteRestaurant", deleteRestaurant);
+router.delete("/deleteRestaurant", jwtParse, deleteRestaurant);
 
 router.get("/allUserAndRestaurant", allUserAndRestaurant);
 
-router.put("/rating", updateReview);
+router.put("/rating", jwtParse, updateReview);
 
 router.get("/getCommentForRestaurant", getCommentForRestaurant);
 
 router.put("/updateRatingById", jwtParse, updateRatingById);
 
 router.delete("/deleteRating", jwtParse, deleteRating);
+
+router.get("/getRestaurant", getRestaurantWithoutLogin);
 
 export default router;

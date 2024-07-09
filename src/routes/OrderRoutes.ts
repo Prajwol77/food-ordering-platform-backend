@@ -1,16 +1,23 @@
 import express from "express";
 import { jwtParse } from "../middleware/auth";
-import OrderController from "../Controllers/OrderController";
+import {
+  createCheckoutSession,
+  getMyOrders,
+} from "../Controllers/OrderController";
+import createKhaltiCheckOutSession from "../Controllers/KhaltiController";
 
 //? /api/order/checkout
 
 const router = express.Router();
 
-router.get("/", jwtParse, OrderController.getMyOrders);
+router.get("/", jwtParse, getMyOrders);
+
+router.post("/create-checkout-session", jwtParse, createCheckoutSession);
 
 router.post(
-  "/create-checkout-session",
+  "/create-khalti-checkout-session",
   jwtParse,
-  OrderController.createCheckoutSession
+  createKhaltiCheckOutSession
 );
+
 export default router;
