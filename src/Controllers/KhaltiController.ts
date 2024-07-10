@@ -2,7 +2,6 @@ import axios from 'axios';
 import { Request, Response } from 'express';
 import Restaurant, { MenuItemType } from '../models/restaurant';
 import Order from '../models/order';
-// import { Restaurant, Order, MenuItemType } from './models'; 
 
 type CartItem = {
   id: string;
@@ -10,16 +9,20 @@ type CartItem = {
   quantity: number;
 };
 
+type DeliveryDetails = {
+  email: string;
+  name: string;
+  address: string;
+  city: string;
+  contact: string;
+};
+
 type CheckoutSessionRequest = {
   cartItems: CartItem[];
-  deliveryDetails: {
-    email: string;
-    name: string;
-    address: string;
-    city: string;
-    contact: string;
-  };
+  deliveryDetails: DeliveryDetails;
   restaurantId: string;
+  deliveryPrice: string;
+  estimatedDeliveryTime: string;
 };
 
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
@@ -28,7 +31,6 @@ const createKhaltiLineItems = (
   checkoutSessionRequest: CheckoutSessionRequest,
   menuItems: MenuItemType[]
 ) => {
-
   const lineItems = checkoutSessionRequest.cartItems.map((cartItem) => {
     const menuItem = menuItems.find((item) => item._id.toString() === cartItem.id.toString());
     if (!menuItem) {
@@ -38,25 +40,26 @@ const createKhaltiLineItems = (
     return {
       identity: menuItem._id.toString(),
       name: menuItem.name,
-      total_price: menuItem.price * cartItem.quantity * 100,
+      total_price: menuItem.price * cartItem.quantity / 100,
       quantity: cartItem.quantity,
-      unit_price: menuItem.price * cartItem.quantity * 100,
+      unit_price: menuItem.price * cartItem.quantity / 100,
     };
   });
 
+  console.log("lineItems", lineItems);
   return lineItems;
 };
 
 const createKhaltiSession = async (
   lineItems: any[],
   orderId: string,
-  deliveryPrice: number,
+  deliveryPrice: string,
   restaurantId: string,
   checkoutSessionRequest: CheckoutSessionRequest
 ) => {    
-  const totalAmount = lineItems.reduce((sum, item) => sum + item.total_price, 0) + deliveryPrice * 100;
-    console.log(totalAmount);
-    
+  const totalAmount: number = lineItems.reduce((sum, item) => sum + item.total_price, 0) + (parseInt(deliveryPrice));
+  console.log('totalAmount', totalAmount);
+  
   const options = {
     method: 'POST',
     url: 'https://a.khalti.com/api/v2/epayment/initiate/',
@@ -67,7 +70,7 @@ const createKhaltiSession = async (
     data: {
       return_url: `${FRONTEND_URL}/order-status?success=true`,
       website_url: `${FRONTEND_URL}`,
-      amount: totalAmount / 100,
+      amount: totalAmount * 100,
       purchase_order_id: orderId,
       purchase_order_name: `Order from Restaurant ${restaurantId}`,
       customer_info: {
@@ -78,15 +81,22 @@ const createKhaltiSession = async (
     },
   };
 
-  const response = await axios(options);  
+  const response = await axios(options);
+  console.log(response.data);
+  
   return response.data;
 };
 
 const createKhaltiCheckOutSession = async (req: Request, res: Response) => {
   try {
     const checkoutSessionRequest: CheckoutSessionRequest = req.body;
+    const { estimatedDeliveryTime, deliveryPrice } = checkoutSessionRequest;
 
     console.log("req.body", req.body);
+
+    if (!estimatedDeliveryTime || !deliveryPrice) {
+      return res.status(400).json({ message: 'estimatedDeliveryTime and deliveryPrice are required' });
+    }
 
     const restaurant = await Restaurant.findById(checkoutSessionRequest.restaurantId);
 
@@ -103,21 +113,23 @@ const createKhaltiCheckOutSession = async (req: Request, res: Response) => {
       deliveryDetails: checkoutSessionRequest.deliveryDetails,
       cartItems: checkoutSessionRequest.cartItems,
       createdAt: new Date(),
+      deliveryPrice: parseFloat(deliveryPrice),
+      estimatedDeliveryTime: parseInt(estimatedDeliveryTime),
     });
 
     await newOrder.save();
 
-    const sessionData = await createKhaltiSession(
+    const session = await createKhaltiSession(
       lineItems,
       newOrder._id.toString(),
-      restaurant.deliveryPrice,
+      deliveryPrice,
       restaurant._id.toString(),
       checkoutSessionRequest
     );
 
-    return res.status(200).json(sessionData);
+    return res.status(200).json(session);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };

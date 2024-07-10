@@ -321,14 +321,15 @@ const getOrderHistory = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 15;
     const skip = (page - 1) * limit;
     const userId = req.query.userId;
-console.log("userId", userId);
 
     const orders = await Order.find({
       user: userId,
     })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate('restaurant')
+      .populate('user');
 
     const orderCount = await Order.find({
       user: userId,
