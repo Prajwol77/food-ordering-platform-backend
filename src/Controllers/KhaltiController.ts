@@ -58,8 +58,6 @@ const createKhaltiSession = async (
   checkoutSessionRequest: CheckoutSessionRequest
 ) => {    
   const totalAmount: number = lineItems.reduce((sum, item) => sum + item.total_price, 0) + (parseInt(deliveryPrice));
-  console.log('totalAmount', totalAmount);
-  
   const options = {
     method: 'POST',
     url: 'https://a.khalti.com/api/v2/epayment/initiate/',
