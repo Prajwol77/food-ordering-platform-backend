@@ -2,11 +2,56 @@ import Stripe from "stripe";
 import { Request, Response } from "express";
 import Restaurant, { MenuItemType } from "../models/restaurant";
 import Order from "../models/order";
+import { Types } from "mongoose";
 
 const stripeKey = process.env.STRIPE_API_KEY || "";
 console.log(stripeKey);
 const STRIPE = new Stripe(stripeKey);
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
+
+
+const cashOnDelivery =async (req:Request, res:Response)=>{
+    try {
+      const checkoutSessionRequest: CheckoutSessionRequest = req.body;
+
+      const restaurant = await Restaurant.findById(
+        checkoutSessionRequest.restaurantId
+      ).populate("menuItems");
+  
+      if (!restaurant) {
+        return res.status(404).json("Restaurant not found");
+      }
+
+      let totalAmount = 0;
+      checkoutSessionRequest.cartItems.map((c)=>{
+        
+        restaurant.menuItems.map((r)=>{
+          if(r._id == new Types.ObjectId(c.id)){
+            totalAmount += r.price
+          }
+        })
+      })
+
+  
+      const newOrder = new Order({
+        restaurant: restaurant,
+        user: req.userId,
+        status: "placed",
+        deliveryDetails: checkoutSessionRequest.deliveryDetails,
+        cartItems: checkoutSessionRequest.cartItems,
+        estimatedDeliveryTime: checkoutSessionRequest.estimatedDeliveryTime,
+        deliveryPrice: checkoutSessionRequest.deliveryPrice,
+        createdAt: new Date(),
+        totalAmount
+      });
+      newOrder.save();
+      return res.status(201).json(newOrder)
+   
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ message: "Something went wrong" });
+    }
+}
 
 const getMyOrders = async (req: Request, res: Response) => {
   try {
@@ -178,4 +223,4 @@ const createSession = async (
   });
   return sessionData;
 };
-export { getMyOrders, createCheckoutSession };
+export { getMyOrders, createCheckoutSession, cashOnDelivery };

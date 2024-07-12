@@ -1,6 +1,7 @@
 import express from "express";
 import { jwtParse } from "../middleware/auth";
 import {
+  cashOnDelivery,
   createCheckoutSession,
   getMyOrders,
 } from "../Controllers/OrderController";
@@ -19,5 +20,6 @@ router.post(
   jwtParse,
   createKhaltiCheckOutSession
 );
+router.post("/cashOnDelivery", jwtParse, cashOnDelivery)
 
 export default router;
