@@ -6,8 +6,31 @@ import { Types } from "mongoose";
 import parseToken from "../utils/parse_token";
 import Filter from "bad-words";
 
-const filter = new Filter();
+const config = {
+  list: ["death", "die", "mad", "autistic", "pagal", "faltu"], // Add your custom bad words here
+};
 
+// Initialize the bad-words filter
+const filter = new Filter(config);
+
+// Function to create a regex pattern for a word
+const createBadWordRegex = (word: string) => {
+  return new RegExp(`\\b${word.split("").join("[^a-zA-Z]*")}\\b`, "gi");
+};
+
+// Function to clean offensive words
+const cleanOffensiveWords = (comment: string) => {
+  let cleanedComment = filter.clean(comment);
+
+  config.list.forEach((word) => {
+    const regex = createBadWordRegex(word);
+    cleanedComment = cleanedComment.replace(regex, "***");
+  });
+
+  return cleanedComment;
+};
+
+// Function to update the review
 const updateReview = async (req: Request, res: Response) => {
   try {
     const { authorization } = req.headers;
@@ -17,11 +40,8 @@ const updateReview = async (req: Request, res: Response) => {
     if (!tokenVar) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const { reviewStars, restaurantID, userId, comment } = req.body;
 
-    if (filter.isProfane(comment)) {
-      return res.status(404).json({ message: "Offensive comment detected" });
-    }
+    const { reviewStars, restaurantID, userId, comment } = req.body;
 
     if (!restaurantID) {
       return res.status(400).json({ message: "Restaurant ID is required" });
@@ -51,13 +71,15 @@ const updateReview = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
-    };
-    
+    }
+
+    const cmt = cleanOffensiveWords(comment);
+
     const rating = new Ratings({
       userId,
       restaurantID,
       ratingValue: reviewStars,
-      comment,
+      comment: cmt,
     });
     await rating.save();
 
@@ -174,6 +196,10 @@ const updateRatingById = async (req: Request, res: Response) => {
     }
 
     rating.updatedAt = new Date();
+
+    const cmt = filter.clean(comment);
+
+    rating.comment = cmt;
 
     await rating.save();
 

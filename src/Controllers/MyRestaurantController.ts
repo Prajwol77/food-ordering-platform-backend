@@ -58,7 +58,7 @@ const updateOrderStatus = async (req: Request, res: Response) => {
 const createMyRestaurant = async (req: Request, res: Response) => {
   try {
     const { authorization } = req.headers;
-
+    console.log("req.body.deliveryPrice", req.body.deliveryPrice);
     const tokenVar = await parseToken(authorization);
 
     if (!tokenVar) {
@@ -117,8 +117,12 @@ const updateMyRestaurant = async (req: Request, res: Response) => {
 
     restaurant.restaurantName = req.body.restaurantName;
     restaurant.city = req.body.city;
-    restaurant.deliveryPrice = req.body.deliveryPrice;
-    restaurant.estimatedDeliveryTime = req.body.estimatedDeliveryTime;
+    restaurant.deliveryPrice = req.body.deliveryPrice
+      ? req.body.deliveryPrice
+      : 0;
+    restaurant.estimatedDeliveryTime = req.body.estimatedDeliveryTime
+      ? req.body.estimatedDeliveryTime
+      : 0;
     restaurant.cuisines = req.body.cuisines;
     restaurant.menuItems = req.body.menuItems;
     restaurant.lastUpdated = new Date();
@@ -328,8 +332,8 @@ const getOrderHistory = async (req: Request, res: Response) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('restaurant')
-      .populate('user');
+      .populate("restaurant")
+      .populate("user");
 
     const orderCount = await Order.find({
       user: userId,
